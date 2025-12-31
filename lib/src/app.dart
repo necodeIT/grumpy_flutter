@@ -28,11 +28,14 @@ abstract class AppModule<AppConfig extends Object>
   @override
   @mustCallSuper
   void bindExternalDeps(grumpy.Bind<Object, AppConfig> bind) {
-    bind<AppModule<AppConfig>>((_, _) => this);
+    bind<Screen>((_, _) => notFoundScreen);
   }
 
   @override
   List<FlutterRoute<AppConfig>> get routes => [];
+
+  @override
+  List<Module<AppConfig>> get imports => [];
 
   @override
   // we want to redefine root here to add the 404 route
@@ -76,4 +79,7 @@ abstract class Module<AppConfig extends Object>
     extends grumpy.Module<Widget, AppConfig> {
   @override
   List<FlutterRoute<AppConfig>> get routes => [];
+
+  @override
+  List<Module<AppConfig>> get imports => [];
 }

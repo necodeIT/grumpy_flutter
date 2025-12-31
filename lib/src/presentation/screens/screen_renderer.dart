@@ -10,7 +10,7 @@ class ScreenRenderer<AppConfig extends Object> extends StatefulWidget {
   const ScreenRenderer({super.key, required this.uri});
 
   @override
-  State<ScreenRenderer> createState() => _ScreenRendererState();
+  State<ScreenRenderer> createState() => _ScreenRendererState<AppConfig>();
 }
 
 class _ScreenRendererState<AppConfig extends Object>
@@ -23,6 +23,7 @@ class _ScreenRendererState<AppConfig extends Object>
     router.navigate(
       widget.uri.toString(),
       callback: (screen) {
+        if (!mounted) return;
         setState(() {
           child = screen;
         });

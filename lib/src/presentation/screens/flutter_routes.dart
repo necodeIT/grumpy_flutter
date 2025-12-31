@@ -21,6 +21,7 @@ abstract class FlutterRoute<AppConfig extends Object>
 /// A route that displays a [Screen] in the application.
 class ScreenRoute<AppConfig extends Object>
     extends grumpy.LeafRoute<Widget, AppConfig>
+    with LogMixin
     implements FlutterRoute<AppConfig> {
   @override
   Screen get view => super.view as Screen;
@@ -44,7 +45,13 @@ class ScreenRoute<AppConfig extends Object>
   @override
   RouteBase get goRoute => GoRoute(
     path: path,
-    builder: (context, state) => ScreenRenderer(uri: state.uri),
+    builder: (context, state) {
+      log('Creating ScreenRenderer for path: $path, URI: ${state.uri}');
+      return ScreenRenderer<AppConfig>(
+        uri: state.uri,
+        key: ValueKey(state.uri),
+      );
+    },
     routes: children.map((child) => child.goRoute).toList(),
   );
 
@@ -98,8 +105,7 @@ class ModuleRoute<AppConfig extends Object>
 
   @override
   grumpy.LeafRoute<Widget, AppConfig>? get root =>
-      super.root ??
-      ScreenRoute.root(view: GetIt.I<AppModule<AppConfig>>().notFoundScreen);
+      super.root ?? ScreenRoute.root(view: GetIt.I<Screen>());
 
   @override
   Module<AppConfig> get module => super.module as Module<AppConfig>;
@@ -128,7 +134,10 @@ class ModuleRoute<AppConfig extends Object>
       path: path,
 
       builder: (context, state) {
-        return ScreenRenderer(uri: state.uri);
+        return ScreenRenderer<AppConfig>(
+          uri: state.uri,
+          key: ValueKey(state.uri),
+        );
       },
 
       routes: module.routes.map((child) => child.goRoute).toList(),

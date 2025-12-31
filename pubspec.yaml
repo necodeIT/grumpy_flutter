@@ -25,6 +25,7 @@ dependencies:
   grumpy_annotations:
     git:
       url: https://github.com/necodeIT/grumpy_annotations.git
+  logging: ^1.3.0
   meta: ^1.17.0
 
 dev_dependencies:
@@ -35,6 +36,6 @@ dev_dependencies:
   grumpy_lints:
     git:
       url: https://github.com/necodeIT/grumpy_lints.git
-# dependency_overrides:
-#   grumpy:
-#     path: ../grumpy
+dependency_overrides:
+  grumpy:
+    path: ../grumpy
