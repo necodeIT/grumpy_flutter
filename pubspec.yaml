@@ -1,0 +1,40 @@
+name: grumpy_flutter
+description: "A new Flutter package project."
+version: 0.0.1
+repository: https://github.com/necodeIT/grumpy_flutter
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  web:
+  windows:
+
+environment:
+  sdk: ^3.9.2
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  go_router: ^17.0.1
+  get_it: ^8.2.0
+  grumpy:
+    git:
+      url: https://github.com/necodeIT/grumpy.git
+  grumpy_annotations:
+    git:
+      url: https://github.com/necodeIT/grumpy_annotations.git
+  meta: ^1.17.0
+
+dev_dependencies:
+  custom_lint: ^0.8.1
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
+  grumpy_lints:
+    git:
+      url: https://github.com/necodeIT/grumpy_lints.git
+# dependency_overrides:
+#   grumpy:
+#     path: ../grumpy
