@@ -28,7 +28,7 @@ abstract class AppModule<AppConfig extends Object>
   @override
   @mustCallSuper
   void bindExternalDeps(grumpy.Bind<Object, AppConfig> bind) {
-    bind<Screen>((_, _) => notFoundScreen);
+    bind<AppModule<AppConfig>>((_, _) => this);
   }
 
   @override
@@ -69,6 +69,18 @@ abstract class AppModule<AppConfig extends Object>
 
     return routes;
   }
+
+  /// Builds the root widget of the application.
+  ///
+  /// Use this to wrap the [goRouter] in a [MaterialApp] or similar.
+  ///
+  /// Example:
+  /// ```dart
+  /// Widget buildApp() {
+  ///   return MaterialApp.router(routerConfig: goRouter);
+  /// }
+  /// ```
+  Widget buildApp();
 }
 
 /// A modular unit of functionality within an application

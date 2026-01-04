@@ -105,7 +105,8 @@ class ModuleRoute<AppConfig extends Object>
 
   @override
   grumpy.LeafRoute<Widget, AppConfig>? get root =>
-      super.root ?? ScreenRoute.root(view: GetIt.I<Screen>());
+      super.root ??
+      ScreenRoute.root(view: GetIt.I<AppModule<AppConfig>>().notFoundScreen);
 
   @override
   Module<AppConfig> get module => super.module as Module<AppConfig>;

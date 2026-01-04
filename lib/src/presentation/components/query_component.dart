@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:grumpy_flutter/grumpy_flutter.dart';
+import 'package:logging/logging.dart';
 
 /// A function type that defines a hook for using repositories.
 typedef ReadRepo = Future<(S, R)> Function<S, R extends Repo<S>>();
@@ -45,6 +46,15 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
         LifecycleHooksMixin,
         UseRepoMixin<Widget, Widget, Widget> {
   @override
+  Level get logLevel => Level.FINEST;
+
+  @override
+  String get group => 'QueryComponent<$T>';
+
+  @override
+  String get logTag => widget.runtimeType.toString();
+
+  @override
   void initState() {
     super.initState();
 
@@ -56,14 +66,23 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
   @override
   Widget build(BuildContext context) {
     return when(
-      data: (data) => data,
-      error: (error) => error,
-      loading: (loading) => loading,
+      data: (data) {
+        log('Rendering data state');
+        return data;
+      },
+      error: (error) {
+        log('Rendering error state');
+        return error;
+      },
+      loading: (loading) {
+        log('Rendering loading state');
+        return loading;
+      },
     );
   }
 
   @override
-  FutureOr<Widget> onDependenciesLoading() {
+  Widget onDependenciesLoading() {
     return widget.buildLoader(context);
   }
 
@@ -78,6 +97,7 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
 
   @override
   FutureOr<void> dependenciesChanged() {
+    log('QueryComponent detected dependency change, rebuilding UI...');
     setState(() {});
   }
 
@@ -87,7 +107,8 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
   }
 
   @override
-  FutureOr<dynamic> onDispose() async {
-    await dispose();
+  void dispose() {
+    super.dispose();
+    super.free();
   }
 }

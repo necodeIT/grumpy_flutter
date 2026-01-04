@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:grumpy/grumpy.dart';
+import 'package:get_it/get_it.dart';
 import 'package:grumpy_flutter/grumpy_flutter.dart';
 import 'package:meta/meta.dart';
 
@@ -28,7 +28,7 @@ abstract class Guard<AppConfig extends Object>
   FutureOr<bool> canActivate(RouteContext context);
 
   @override
-  String? get group => 'Middleware.Guard.$runtimeType';
+  String? get group => 'Middleware.Guard';
 
   @nonVirtual
   @override
@@ -36,7 +36,7 @@ abstract class Guard<AppConfig extends Object>
     log('Authorizing route: ${context.fullPath} ');
     final allowed = await trace<bool>(
       'Middleware.Guard.$runtimeType.canActivate',
-      () => canActivate(context),
+      () async => await canActivate(context),
       attributes: {'route': context.toJson(), 'redirectTo': redirectTo},
     );
 
@@ -49,10 +49,14 @@ abstract class Guard<AppConfig extends Object>
     if (redirectTo != null) {
       log('Redirecting to: $redirectTo');
 
-      // TODO: redirect to the specified route
+      final app = GetIt.I<AppModule<AppConfig>>();
+
+      app.goRouter.go(redirectTo!);
     }
 
-    log('No redirect specified, throwing RouteNotAuthorizedError');
+    if (redirectTo == null) {
+      log('No redirect specified, throwing RouteNotAuthorizedError');
+    }
     throw RouteNotAuthorizedError(context);
   }
 

@@ -1,4 +1,3 @@
-import 'package:grumpy/grumpy.dart';
 import 'package:grumpy_flutter/grumpy_flutter.dart';
 
 /// Error thrown when [Guard.redirectTo] is not specified in a [Guard].

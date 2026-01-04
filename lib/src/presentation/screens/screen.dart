@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:grumpy/grumpy.dart' hide Builder;
-import 'package:grumpy_flutter/grumpy_flutter.dart' hide Builder;
 
 /// A base class for all screens in the application.
 ///

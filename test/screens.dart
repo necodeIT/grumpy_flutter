@@ -1,4 +1,4 @@
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:grumpy_flutter/grumpy_flutter.dart';
 
@@ -26,5 +26,17 @@ class DummyScreen extends Screen {
   @override
   Widget buildPreview(BuildContext context, RouteContext route) {
     return Center(child: Text('Preview\ntitle: $title, route: $route'));
+  }
+}
+
+class GuardedScreen extends Screen {
+  @override
+  Widget buildContent(BuildContext context, RouteContext route) {
+    return const Center(child: Text('guarded-screen-content'));
+  }
+
+  @override
+  Widget buildPreview(BuildContext context, RouteContext route) {
+    return const Text('guarded-screen-preview');
   }
 }

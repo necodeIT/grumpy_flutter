@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:grumpy_flutter/grumpy_flutter.dart';
 
+import 'repos.dart';
 import 'screens.dart';
 
 class TestAppConfig {
@@ -42,7 +43,6 @@ class TestApp extends AppModule<TestAppConfig> {
   ];
 
   @override
-  // TODO: implement initialLocation
   String get initialLocation => '/init';
 
   @override
@@ -61,6 +61,7 @@ class TestApp extends AppModule<TestAppConfig> {
   @override
   FutureOr<void> dependenciesChanged() {}
 
+  @override
   Widget buildApp() {
     return MaterialApp.router(routerConfig: goRouter);
   }
@@ -111,4 +112,65 @@ class TestModule extends Module<TestAppConfig> {
   static void resetTrackers() {
     activationCount = 0;
   }
+}
+
+class GuardedModule extends Module<TestAppConfig> {
+  final Guard<TestAppConfig> guard;
+  final GuardedRepo repo;
+
+  // false positive
+  // ignore: call_initialize_in_constructor
+  GuardedModule({required this.guard, required String initialData})
+    : repo = GuardedRepo(initialData);
+
+  @override
+  void bindRepos(Bind<Repo, TestAppConfig> bind) {
+    bind<GuardedRepo>((_, __) => repo);
+  }
+
+  @override
+  FutureOr<void> dependenciesChanged() {}
+
+  @override
+  List<FlutterRoute<TestAppConfig>> get routes => [
+    ScreenRoute<TestAppConfig>(
+      path: '/screen',
+      view: GuardedScreen(),
+      middleware: [guard],
+    ),
+  ];
+}
+
+class GuardedApp extends AppModule<TestAppConfig> {
+  final GuardedModule guardedModule;
+  final String initialRoute;
+
+  // false positive
+  // ignore: call_initialize_in_constructor
+  GuardedApp(this.guardedModule, this.initialRoute)
+    : super(const TestAppConfig(appName: 'GuardedApp'));
+
+  @override
+  List<Module<TestAppConfig>> get imports => [guardedModule];
+
+  @override
+  List<FlutterRoute<TestAppConfig>> get routes => [
+    ModuleRoute<TestAppConfig>(path: '/guarded', module: guardedModule),
+    ScreenRoute<TestAppConfig>(
+      path: '/redirect',
+      view: DummyScreen('redirect'),
+    ),
+  ];
+
+  @override
+  String get initialLocation => initialRoute;
+
+  @override
+  Screen get notFoundScreen => NotFoundScreen();
+
+  @override
+  FutureOr<void> dependenciesChanged() {}
+
+  @override
+  Widget buildApp() => MaterialApp.router(routerConfig: goRouter);
 }
