@@ -4,6 +4,9 @@ class TestRepo extends Repo<String> {
   // false positive
   // ignore: call_initialize_in_constructor
   TestRepo();
+
+  @override
+  String get logTag => 'TestRepo';
 }
 
 class GuardedRepo extends Repo<String> {
@@ -11,4 +14,7 @@ class GuardedRepo extends Repo<String> {
     data(initial);
     initialize();
   }
+
+  @override
+  String get logTag => 'GuardedRepo';
 }

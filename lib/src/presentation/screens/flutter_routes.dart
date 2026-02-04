@@ -3,12 +3,14 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grumpy_flutter/grumpy_flutter.dart';
 import 'package:grumpy/grumpy.dart' as grumpy;
+import 'package:logging/logging.dart';
 
 /// Represents a Flutter-specific [Route] in the application.
 ///
 /// Provides integration with the `go_router` package for navigation.
 abstract class FlutterRoute<AppConfig extends Object>
-    extends grumpy.Route<Widget, AppConfig> {
+    extends grumpy.Route<Widget, AppConfig>
+    with LogMixin {
   /// Represents a Flutter-specific [Route] in the application.
   ///
   /// Provides integration with the `go_router` package for navigation.
@@ -16,6 +18,12 @@ abstract class FlutterRoute<AppConfig extends Object>
 
   /// Converts this route into a GoRouter [RouteBase].
   RouteBase get goRoute;
+
+  @override
+  String get group => 'FlutterRoute';
+
+  @override
+  Level get logLevel => Level.FINEST;
 }
 
 /// A route that displays a [Screen] in the application.
@@ -45,13 +53,7 @@ class ScreenRoute<AppConfig extends Object>
   @override
   RouteBase get goRoute => GoRoute(
     path: path,
-    builder: (context, state) {
-      log('Creating ScreenRenderer for path: $path, URI: ${state.uri}');
-      return ScreenRenderer<AppConfig>(
-        uri: state.uri,
-        key: ValueKey(state.uri),
-      );
-    },
+    builder: _createBuilder<AppConfig>(path, log),
     routes: children.map((child) => child.goRoute).toList(),
   );
 
@@ -65,11 +67,15 @@ class ScreenRoute<AppConfig extends Object>
         'children must be FlutterRoutes',
       ),
       super(path: '/');
+
+  @override
+  String get logTag => 'ScreenRoute';
 }
 
 /// A route that renders a shell around its child routes.
 class ShellScreenRoute<AppConfig extends Object>
     extends Route<Widget, AppConfig>
+    with LogMixin
     implements FlutterRoute<AppConfig> {
   /// Builds the shell widget.
   final ShellRouteBuilder shellBuilder;
@@ -90,6 +96,9 @@ class ShellScreenRoute<AppConfig extends Object>
     builder: shellBuilder,
     routes: children.map((child) => child.goRoute).toList(),
   );
+
+  @override
+  String get logTag => 'ShellScreenRoute';
 }
 
 /// A route that activates a [Module] when matched.
@@ -98,6 +107,7 @@ class ShellScreenRoute<AppConfig extends Object>
 /// mount a dedicated [Module] (and its dependency graph) on navigation.
 class ModuleRoute<AppConfig extends Object>
     extends grumpy.ModuleRoute<Widget, AppConfig>
+    with LogMixin
     implements FlutterRoute<AppConfig> {
   @override
   List<FlutterRoute<AppConfig>> get children =>
@@ -134,14 +144,29 @@ class ModuleRoute<AppConfig extends Object>
     return GoRoute(
       path: path,
 
-      builder: (context, state) {
-        return ScreenRenderer<AppConfig>(
-          uri: state.uri,
-          key: ValueKey(state.uri),
-        );
-      },
+      builder: _createBuilder<AppConfig>(path, log),
 
       routes: module.routes.map((child) => child.goRoute).toList(),
     );
   }
+
+  @override
+  String get logTag => 'ModuleRoute';
 }
+
+GoRouterWidgetBuilder _createBuilder<AppConfig extends Object>(
+  String path,
+  void Function(String) log,
+) => (BuildContext context, GoRouterState state) {
+  log('Forwarding navigation: $path, URI: ${state.uri}');
+
+  final router = Service.get<RoutingService<Widget, AppConfig>>();
+
+  router.navigate(
+    state.uri.toString(),
+    skipPreview: false,
+    callback: (_, _) {},
+  );
+
+  return ScreenRenderer<AppConfig>();
+};

@@ -65,6 +65,9 @@ class TestApp extends AppModule<TestAppConfig> {
   Widget buildApp() {
     return MaterialApp.router(routerConfig: goRouter);
   }
+
+  @override
+  String get logTag => 'TestApp';
 }
 
 class DummyModule extends Module<TestAppConfig> {
@@ -87,6 +90,9 @@ class DummyModule extends Module<TestAppConfig> {
   static void resetTrackers() {
     activationCount = 0;
   }
+
+  @override
+  String get logTag => 'DummyModule';
 }
 
 class TestModule extends Module<TestAppConfig> {
@@ -112,6 +118,9 @@ class TestModule extends Module<TestAppConfig> {
   static void resetTrackers() {
     activationCount = 0;
   }
+
+  @override
+  String get logTag => 'TestModule';
 }
 
 class GuardedModule extends Module<TestAppConfig> {
@@ -139,6 +148,9 @@ class GuardedModule extends Module<TestAppConfig> {
       middleware: [guard],
     ),
   ];
+
+  @override
+  String get logTag => 'GuardedModule';
 }
 
 class GuardedApp extends AppModule<TestAppConfig> {
@@ -173,4 +185,7 @@ class GuardedApp extends AppModule<TestAppConfig> {
 
   @override
   Widget buildApp() => MaterialApp.router(routerConfig: goRouter);
+
+  @override
+  String get logTag => 'GuardedApp';
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:grumpy_annotations/grumpy_annotations.dart';
 import 'package:grumpy_flutter/grumpy_flutter.dart';
 import 'package:logging/logging.dart';
 
@@ -14,7 +15,7 @@ typedef ReadRepo = Future<(S, R)> Function<S, R extends Repo<S>>();
 /// data of type [T] and builds its UI based on the query's state (loading,
 /// error, or data).
 /// It leverages the [ReadRepo] hook to access repositories reactively.
-abstract class QueryComponent<T> extends StatefulComponent {
+abstract class QueryComponent<T> extends StatefulComponent with LogMixin {
   /// Creates a [QueryComponent] with an optional [key].
   const QueryComponent({super.key});
 
@@ -37,6 +38,11 @@ abstract class QueryComponent<T> extends StatefulComponent {
   @override
   @nonVirtual
   State<QueryComponent<T>> createState() => _QueryComponentState<T>();
+  @override
+  String get group => 'QueryComponent';
+
+  @override
+  Level get logLevel => Level.FINEST;
 }
 
 class _QueryComponentState<T> extends State<QueryComponent<T>>
@@ -45,22 +51,31 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
         LogMixin,
         LifecycleHooksMixin,
         UseRepoMixin<Widget, Widget, Widget> {
+  @initializer
   @override
-  Level get logLevel => Level.FINEST;
-
-  @override
-  String get group => 'QueryComponent<$T>';
-
-  @override
-  String get logTag => widget.runtimeType.toString();
-
-  @override
-  void initState() {
+  void initState() async {
     super.initState();
 
     installUseRepoHooks();
 
     initialize();
+  }
+
+  @override
+  void log(String message, [Object? error, StackTrace? stackTrace]) {
+    widget.log(message, error, stackTrace);
+  }
+
+  @override
+  void logAtLevel(
+    Level level,
+    String message, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) {
+    // this is a pass-through to [QueryComponent].
+    // ignore: invalid_use_of_internal_member
+    widget.logAtLevel(level, message, error, stackTrace);
   }
 
   @override
@@ -108,7 +123,7 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
 
   @override
   void dispose() {
+    free();
     super.dispose();
-    super.free();
   }
 }

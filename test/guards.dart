@@ -17,6 +17,9 @@ class ToggleGuard extends Guard<TestAppConfig> {
   String toString() {
     return 'ToggleGuard(allowed: $allowed, redirectTo: $redirectTo)';
   }
+
+  @override
+  String get logTag => 'ToggleGuard';
 }
 
 class RepoGuard extends Guard<TestAppConfig> {
@@ -34,4 +37,7 @@ class RepoGuard extends Guard<TestAppConfig> {
   String toString() {
     return 'TestRepoGuard(redirectTo: $redirectTo)';
   }
+
+  @override
+  String get logTag => 'RepoGuard';
 }

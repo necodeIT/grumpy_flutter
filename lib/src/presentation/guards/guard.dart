@@ -28,7 +28,7 @@ abstract class Guard<AppConfig extends Object>
   FutureOr<bool> canActivate(RouteContext context);
 
   @override
-  String? get group => 'Middleware.Guard';
+  String get group => '${super.group}.Guard';
 
   @nonVirtual
   @override
@@ -37,7 +37,11 @@ abstract class Guard<AppConfig extends Object>
     final allowed = await trace<bool>(
       'Middleware.Guard.$runtimeType.canActivate',
       () async => await canActivate(context),
-      attributes: {'route': context.toJson(), 'redirectTo': redirectTo},
+      attributes: {
+        'route': context.toJson(),
+        'redirectTo': redirectTo,
+        'guard': logTag,
+      },
     );
 
     if (allowed) {
