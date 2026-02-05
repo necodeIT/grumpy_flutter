@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/widgets.dart';
 import 'package:grumpy_flutter/grumpy_flutter.dart';
 import 'package:logging/logging.dart';
@@ -7,7 +5,10 @@ import 'package:logging/logging.dart';
 /// A widget that renders the current screen by listening to [RoutingService.onViewChanged].
 class ScreenRenderer<AppConfig extends Object> extends StatefulWidget {
   /// Creates a ScreenRenderer.
-  const ScreenRenderer({super.key});
+  const ScreenRenderer({super.key, required this.uri});
+
+  /// The URI to navigate to and render.
+  final Uri uri;
 
   @override
   State<ScreenRenderer> createState() => _ScreenRendererState<AppConfig>();
@@ -16,9 +17,46 @@ class ScreenRenderer<AppConfig extends Object> extends StatefulWidget {
 class _ScreenRendererState<AppConfig extends Object>
     extends State<ScreenRenderer<AppConfig>>
     with LogMixin {
-  final router = Service.get<RoutingService<Widget, AppConfig>>();
-  late final StreamSubscription<ViewChangedEvent<Widget, AppConfig>>
-  _subscription;
+  final router = RoutingService<Widget, AppConfig>();
+
+  bool navigated = false;
+
+  void navigate() {
+    if (navigated) return;
+
+    log('Navigating to: ${widget.uri}');
+
+    try {
+      router.navigate(widget.uri.toString(), callback: renderView);
+    } catch (e, s) {
+      log('Navigation to ${widget.uri} failed', e, s);
+    } finally {
+      navigated = true;
+    }
+  }
+
+  void renderView(Widget view, bool isPreview) {
+    if (!mounted) {
+      log('ScreenRenderer is not mounted, cannot render view.');
+      return;
+    }
+
+    log(
+      'Rendering ${isPreview ? 'preview' : 'final'} view for URI: ${widget.uri}',
+    );
+
+    setState(() {
+      _currentView = view;
+    });
+  }
+
+  Widget? _currentView;
+
+  @override
+  void initState() {
+    super.initState();
+    navigate();
+  }
 
   @override
   Level get logLevel => Level.FINEST;
@@ -27,41 +65,12 @@ class _ScreenRendererState<AppConfig extends Object>
   String get group => 'ScreenRenderer';
 
   @override
-  void initState() {
-    super.initState();
-
-    _subscription = router.onViewChanged((event) {
-      log(
-        'Rendering ${event.isPreview ? 'preview' : 'final'} view for URI: ${event.context?.fullPath}',
-      );
-
-      if (mounted) {
-        setState(() {
-          child = event.view;
-        });
-      }
-    });
-  }
-
-  Widget? child;
-
-  @override
   Widget build(BuildContext context) {
-    if (child == null) {
-      log(
-        'No child widget to render for URI: ${router.currentContext?.fullPath}',
-      );
+    if (_currentView == null) {
+      log('No view to render yet for URI: ${widget.uri}. Showing placeholder.');
     }
-    return child ?? const SizedBox.shrink();
-  }
 
-  @override
-  void dispose() {
-    super.dispose();
-
-    log('Disposing ScreenRenderer for URI: ${router.currentContext?.fullPath}');
-
-    _subscription.cancel();
+    return _currentView ?? const SizedBox.shrink();
   }
 
   @override

@@ -158,15 +158,5 @@ GoRouterWidgetBuilder _createBuilder<AppConfig extends Object>(
   String path,
   void Function(String) log,
 ) => (BuildContext context, GoRouterState state) {
-  log('Forwarding navigation: $path, URI: ${state.uri}');
-
-  final router = Service.get<RoutingService<Widget, AppConfig>>();
-
-  router.navigate(
-    state.uri.toString(),
-    skipPreview: false,
-    callback: (_, _) {},
-  );
-
-  return ScreenRenderer<AppConfig>();
+  return ScreenRenderer<AppConfig>(uri: state.uri, key: ValueKey(state.uri));
 };

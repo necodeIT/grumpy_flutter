@@ -53,7 +53,7 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
         UseRepoMixin<Widget, Widget, Widget> {
   @initializer
   @override
-  void initState() async {
+  void initState() {
     super.initState();
 
     installUseRepoHooks();
@@ -126,4 +126,7 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
     free();
     super.dispose();
   }
+
+  @override
+  String get logTag => '_QueryComponentState';
 }
