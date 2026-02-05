@@ -35,6 +35,9 @@ class BaseStringQueryComponent extends QueryComponent<String> {
     final (value, _) = await use<String, TestRepo>();
     return value;
   }
+
+  @override
+  String get logTag => 'BaseStringQueryComponent';
 }
 
 class StatefulContentQueryComponent extends BaseStringQueryComponent
@@ -43,6 +46,9 @@ class StatefulContentQueryComponent extends BaseStringQueryComponent
 
   @override
   QueryComponentContentState<String> createContentState() => _ContentState();
+
+  @override
+  String get logTag => 'StatefulContentQueryComponent';
 }
 
 class _ContentState extends State<StatefulQueryContentComponent<String>> {
@@ -92,6 +98,9 @@ class DynamicQueryComponent extends QueryComponent<dynamic> {
     final (value, _) = await use<String, TestRepo>();
     return value;
   }
+
+  @override
+  String get logTag => 'DynamicQueryComponent';
 }
 
 class StatefulErrorQueryComponent extends DynamicQueryComponent
@@ -100,6 +109,9 @@ class StatefulErrorQueryComponent extends DynamicQueryComponent
 
   @override
   QueryComponentErrorState createErrorState() => _ErrorState();
+
+  @override
+  String get logTag => 'StatefulErrorQueryComponent';
 }
 
 class _ErrorState extends State<StatefulQueryErrorComponent> {
@@ -126,6 +138,9 @@ class StatefulLoaderQueryComponent extends DynamicQueryComponent
 
   @override
   QueryComponentLoaderState createLoaderState() => _LoaderState();
+
+  @override
+  String get logTag => 'StatefulLoaderQueryComponent';
 }
 
 class _LoaderState extends State<StatefulQueryLoaderComponent> {

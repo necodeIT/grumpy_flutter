@@ -81,6 +81,8 @@ abstract class AppModule<AppConfig extends Object>
   /// }
   /// ```
   Widget buildApp();
+  @override
+  String get group => '${super.group}.AppModule';
 }
 
 /// A modular unit of functionality within an application
@@ -94,4 +96,6 @@ abstract class Module<AppConfig extends Object>
 
   @override
   List<Module<AppConfig>> get imports => [];
+  @override
+  String get group => '${super.group}.Module';
 }

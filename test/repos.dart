@@ -12,7 +12,6 @@ class TestRepo extends Repo<String> {
 class GuardedRepo extends Repo<String> {
   GuardedRepo(String initial) {
     data(initial);
-    initialize();
   }
 
   @override
