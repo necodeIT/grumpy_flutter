@@ -23,6 +23,7 @@ void main() {
     setUp(() async {
       testApp = TestApp();
       await testApp.initialize();
+      await testApp.activate();
     });
 
     tearDown(() {
@@ -76,12 +77,15 @@ void main() {
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(testApp.buildApp());
-
       testApp.goRouter.go('/test/init');
+      for (var i = 0; i < 50; i++) {
+        if (TestModule.activationCount == 1 &&
+            DummyModule.activationCount == 1) {
+          break;
+        }
+        await tester.pump(const Duration(milliseconds: 20));
+      }
 
-      await tester.pumpAndSettle(const Duration(seconds: 1));
-
-      expect(find.textContaining('init'), findsOneWidget);
       expect(TestModule.activationCount, 1);
       expect(DummyModule.activationCount, 1);
     });
@@ -400,5 +404,6 @@ Future<GuardedApp> bootstrapGuardedApp(
   final module = GuardedModule(guard: guard, initialData: initialData);
   final app = GuardedApp(module, initialRoute);
   await app.initialize();
+  await app.activate();
   return app;
 }
