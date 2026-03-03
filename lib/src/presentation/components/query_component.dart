@@ -123,7 +123,7 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
 
   @override
   void dispose() {
-    free();
+    destroy();
     super.dispose();
   }
 

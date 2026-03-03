@@ -35,10 +35,4 @@ dev_dependencies:
   grumpy_lints:
     git:
       url: https://github.com/necodeIT/grumpy_lints.git
-dependency_overrides:
-  grumpy:
-    path: ../grumpy
-  grumpy_annotations:
-    path: ../grumpy_annotations
-  grumpy_lints:
-    path: ../grumpy_lints
+
