@@ -13,8 +13,6 @@ class TestAppConfig {
 }
 
 class TestApp extends AppModule<TestAppConfig> {
-  // initialize is called from outside
-  // ignore: call_initialize_in_constructor
   TestApp() : super(const TestAppConfig(appName: 'TestApp'));
 
   @override
@@ -93,6 +91,13 @@ class DummyModule extends Module<TestAppConfig> {
 
   @override
   String get logTag => 'DummyModule';
+
+  @override
+  FutureOr<void> initialize() async {
+    log('Initializing jhslkfjhasdlkfads');
+    await super.initialize();
+    log('Cocktail is ready!');
+  }
 }
 
 class TestModule extends Module<TestAppConfig> {
@@ -108,8 +113,16 @@ class TestModule extends Module<TestAppConfig> {
 
   @override
   FutureOr<void> activate() async {
+    log('Activating TestModule');
     await super.activate();
     activationCount++;
+  }
+
+  @override
+  FutureOr<void> initialize() async {
+    log('Initializing TestModule');
+    await super.initialize();
+    log('Initialization complete');
   }
 
   @override
@@ -127,8 +140,6 @@ class GuardedModule extends Module<TestAppConfig> {
   final Guard<TestAppConfig> guard;
   final GuardedRepo repo;
 
-  // false positive
-  // ignore: call_initialize_in_constructor
   GuardedModule({required this.guard, required String initialData})
     : repo = GuardedRepo(initialData);
 

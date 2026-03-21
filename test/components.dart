@@ -31,8 +31,8 @@ class BaseStringQueryComponent extends QueryComponent<String> {
   }
 
   @override
-  Future<String> query(ReadRepo use) async {
-    final (value, _) = await use<String, TestRepo>();
+  Future<String> query(QueryHooks use) async {
+    final (value, _) = await use.repo<String, TestRepo>();
     return value;
   }
 
@@ -94,8 +94,8 @@ class DynamicQueryComponent extends QueryComponent<dynamic> {
   }
 
   @override
-  Future<dynamic> query(ReadRepo use) async {
-    final (value, _) = await use<String, TestRepo>();
+  Future<dynamic> query(QueryHooks use) async {
+    final (value, _) = await use.repo<String, TestRepo>();
     return value;
   }
 

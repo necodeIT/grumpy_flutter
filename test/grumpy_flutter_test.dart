@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
@@ -26,8 +28,8 @@ void main() {
       await testApp.activate();
     });
 
-    tearDown(() {
-      GetIt.I.reset(dispose: false);
+    tearDown(() async {
+      await GetIt.I.reset(dispose: false);
       TestModule.resetTrackers();
       DummyModule.resetTrackers();
     });
@@ -73,31 +75,40 @@ void main() {
       expect(find.textContaining('dummy'), findsOneWidget);
     });
 
-    testWidgets('navigating to a route activates all dependenies', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(testApp.buildApp());
-      testApp.goRouter.go('/test/init');
-      for (var i = 0; i < 50; i++) {
-        if (TestModule.activationCount == 1 &&
-            DummyModule.activationCount == 1) {
-          break;
-        }
-        await tester.pump(const Duration(milliseconds: 20));
-      }
+    testWidgets(
+      'navigating to a route activates all dependenies',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(testApp.buildApp());
+        final router = RoutingService<Widget, TestAppConfig>();
+        final done = Completer<void>();
+        late final StreamSubscription sub;
 
-      expect(TestModule.activationCount, 1);
-      expect(DummyModule.activationCount, 1);
-    });
+        sub = router.viewStream.listen((e) {
+          if (e.isPreview) return;
+          if (e.context?.fullPath != '/test/init') return;
+          done.complete();
+        });
+
+        testApp.goRouter.go('/test/init');
+        await tester
+            .pump(); // drives go_router -> ScreenRenderer.initState -> navigate
+        await done.future.timeout(const Duration(seconds: 2));
+        await sub.cancel();
+
+        expect(TestModule.activationCount, 1);
+        expect(DummyModule.activationCount, 1);
+      },
+      timeout: const Timeout(Duration(seconds: 5)),
+    );
   });
 
   group('Components', () {
-    setUp(() {
-      GetIt.I.reset(dispose: false);
+    setUp(() async {
+      await GetIt.I.reset(dispose: false);
     });
 
-    tearDown(() {
-      GetIt.I.reset(dispose: false);
+    tearDown(() async {
+      await GetIt.I.reset(dispose: false);
     });
 
     group('QueryComponent', () {
@@ -105,7 +116,10 @@ void main() {
         WidgetTester tester,
       ) async {
         final repo = TestRepo();
-        GetIt.I.registerSingleton<TestRepo>(repo);
+        GetIt.I.registerSingletonAsync<TestRepo>(() async {
+          await repo.initialize();
+          return repo;
+        });
 
         await tester.pumpWidget(
           const MaterialApp(home: BaseStringQueryComponent(label: 'query')),
@@ -141,6 +155,7 @@ void main() {
         final repo = TestRepo();
         GetIt.I.registerSingletonAsync<TestRepo>(() async {
           await repo.initialize();
+          await repo.activate();
           return repo;
         });
 
@@ -150,7 +165,7 @@ void main() {
           const MaterialApp(home: BaseStringQueryComponent(label: 'query')),
         );
 
-        await tester.pumpAndSettle();
+        await tester.pump(Durations.medium1);
 
         expect(find.text('query-content: hello'), findsOneWidget);
       });
@@ -356,9 +371,9 @@ void main() {
         initialData: 'module repo data',
       );
 
-      final repo = await Repo.get<GuardedRepo>();
-
       await tester.pumpWidget(app.buildApp());
+
+      final repo = await Repo.get<GuardedRepo>();
 
       expect(repo.state.hasData, isTrue);
       expect(repo.state.requireData, 'guarded');

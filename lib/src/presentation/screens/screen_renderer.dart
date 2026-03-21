@@ -21,13 +21,13 @@ class _ScreenRendererState<AppConfig extends Object>
 
   bool navigated = false;
 
-  void navigate() {
+  navigate() async {
     if (navigated) return;
 
     log('Navigating to: ${widget.uri}');
 
     try {
-      router.navigate(widget.uri.toString(), callback: renderView);
+      await router.navigate(widget.uri.toString(), callback: renderView);
     } catch (e, s) {
       log('Navigation to ${widget.uri} failed', e, s);
     } finally {

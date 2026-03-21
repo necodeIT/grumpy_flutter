@@ -4,9 +4,16 @@ import 'package:grumpy/grumpy.dart' as grumpy;
 import 'package:grumpy_flutter/grumpy_flutter.dart';
 
 export 'domain/domain.dart';
+export 'utils/utils.dart';
 export 'presentation/presentation.dart';
 export 'package:grumpy/grumpy.dart'
-    hide RootModule, LeafRoute, Leaf, ModuleRoute, Module;
+    hide RootModule, LeafRoute, Leaf, ModuleRoute;
+
+/// A type alias for a raw module that can be used in the [imports] of an [AppModule].
+///
+/// This is just a convenience to avoid having to import the full `grumpy` package when defining imports.
+typedef ModuleImport<AppConfig extends Object> =
+    grumpy.Module<Widget, AppConfig>;
 
 /// The root module of a Flutter application.
 abstract class AppModule<AppConfig extends Object>
@@ -35,7 +42,7 @@ abstract class AppModule<AppConfig extends Object>
   List<FlutterRoute<AppConfig>> get routes => [];
 
   @override
-  List<Module<AppConfig>> get imports => [];
+  List<ModuleImport<AppConfig>> get imports => [];
 
   @override
   // we want to redefine root here to add the 404 route
@@ -83,6 +90,9 @@ abstract class AppModule<AppConfig extends Object>
   Widget buildApp();
   @override
   String get group => '${super.group}.AppModule';
+
+  @override
+  String toString() => '$logTag<$AppConfig>';
 }
 
 /// A modular unit of functionality within an application
@@ -95,7 +105,10 @@ abstract class Module<AppConfig extends Object>
   List<FlutterRoute<AppConfig>> get routes => [];
 
   @override
-  List<Module<AppConfig>> get imports => [];
+  List<ModuleImport<AppConfig>> get imports => [];
   @override
   String get group => '${super.group}.Module';
+
+  @override
+  String toString() => '$logTag<$AppConfig>';
 }

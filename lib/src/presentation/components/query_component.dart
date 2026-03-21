@@ -6,15 +6,44 @@ import 'package:grumpy_annotations/grumpy_annotations.dart';
 import 'package:grumpy_flutter/grumpy_flutter.dart';
 import 'package:logging/logging.dart';
 
-/// A function type that defines a hook for using repositories.
-typedef ReadRepo = Future<(S, R)> Function<S, R extends Repo<S>>();
+/// Provides a set of hooks for querying data within a [QueryComponent].
+class QueryHooks extends UseHooks {
+  /// Provides a set of hooks for querying data within a [QueryComponent].
+  const QueryHooks({required super.repo, required super.externalStream});
+
+  /// Creates a [QueryHooks] instance from a [UseHooks] instance by passing through the relevant functions.
+  factory QueryHooks.fromUseHooks(UseHooks useRepo) {
+    return QueryHooks(
+      repo: useRepo.repo,
+      externalStream: useRepo.externalStream,
+    );
+  }
+
+  /// A hook that allows you to watch a [TextEditingController] and get its current text value reactively.
+  ///
+  /// [QueryComponent.query] will be re-executed whenever the text in the controller changes, allowing you to build reactive queries based on user input.
+  String text(TextEditingController controller) => externalStream(
+    controller,
+    changeSignal: controller.stream,
+    syncSnapshot: () => controller.text,
+  );
+
+  /// A hook that allows you to watch any [ValueListenable] and get its current value reactively.
+  ///
+  /// [QueryComponent.query] will be re-executed whenever the value changes, allowing you to build reactive queries based on any listenable value.
+  T value<T>(ValueListenable<T> listenable) => externalStream(
+    listenable,
+    changeSignal: listenable.stream,
+    syncSnapshot: () => listenable.value,
+  );
+}
 
 /// A base class for components that perform data queries.
 ///
 /// A [QueryComponent] is a [StatefulComponent] that executes a query to fetch
 /// data of type [T] and builds its UI based on the query's state (loading,
 /// error, or data).
-/// It leverages the [ReadRepo] hook to access repositories reactively.
+/// It leverages [QueryHooks] to access repositories reactively.
 abstract class QueryComponent<T> extends StatefulComponent with LogMixin {
   /// Creates a [QueryComponent] with an optional [key].
   const QueryComponent({super.key});
@@ -24,7 +53,16 @@ abstract class QueryComponent<T> extends StatefulComponent with LogMixin {
   /// It is crucial that the implementation of this method uses the provided [use]
   /// hook instead of [Repo.get] to access repositories, or else the component will not
   /// be reactive to changes in the repositories' states.
-  Future<T> query(ReadRepo use);
+  ///
+  /// Example usage:
+  ///
+  /// ```dart
+  /// Future<List<User>> query(QueryHooks use) async {
+  ///   final (users, usersRepo) = await use.repo<List<User>, UsersRepo>();
+  ///   return await usersRepo.fetchUsers();
+  /// }
+  /// ```
+  Future<T> query(QueryHooks use);
 
   /// Builds the loader widget to display while the query is loading.
   Widget buildLoader(BuildContext context);
@@ -54,6 +92,7 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
   @initializer
   @override
   void initState() {
+    log('Initializing QueryComponent state');
     super.initState();
 
     installUseRepoHooks();
@@ -102,8 +141,8 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
   }
 
   @override
-  FutureOr<Widget> onDependenciesReady() async {
-    final data = await widget.query(useRepo);
+  FutureOr<Widget> onDependenciesReady(use) async {
+    final data = await widget.query(QueryHooks.fromUseHooks(use));
 
     if (!mounted) return const SizedBox.shrink();
 
