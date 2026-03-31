@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:grumpy_flutter/grumpy_flutter.dart';
 import 'package:logging/logging.dart';
+import 'dart:async';
 
 /// A widget that renders the current screen by listening to [RoutingService.onViewChanged].
 class ScreenRenderer<AppConfig extends Object> extends StatefulWidget {
@@ -18,6 +19,7 @@ class _ScreenRendererState<AppConfig extends Object>
     extends State<ScreenRenderer<AppConfig>>
     with LogMixin {
   final router = RoutingService<Widget, AppConfig>();
+  StreamSubscription? _viewChangedSubscription;
 
   bool navigated = false;
 
@@ -27,23 +29,33 @@ class _ScreenRendererState<AppConfig extends Object>
     log('Navigating to: ${widget.uri}');
 
     try {
-      await router.navigate(widget.uri.toString(), callback: renderView);
+      await router.navigate(
+        widget.uri.toString(),
+        callback: (view, preview) => renderView(view, preview, widget.uri),
+      );
     } catch (e, s) {
       log('Navigation to ${widget.uri} failed', e, s);
     } finally {
       navigated = true;
     }
+
+    // _viewChangedSubscription = router.onViewChanged((event) {
+    //   if (event.context?.uri != widget.uri) {
+    //     log(
+    //       'Received a view for a different URI. This means the user has navigated to a different screen and this ScreenRenderer is yet to be disposed. Rendering the view for the new URI instead for faster navigation and to avoid showing a blank screen while the old view is being disposed.',
+    //     );
+    //   }
+    //   renderView(event.view, event.isPreview, event.context?.uri);
+    // });
   }
 
-  void renderView(Widget view, bool isPreview) {
+  void renderView(Widget view, bool isPreview, Uri? route) {
     if (!mounted) {
       log('ScreenRenderer is not mounted, cannot render view.');
       return;
     }
 
-    log(
-      'Rendering ${isPreview ? 'preview' : 'final'} view for URI: ${widget.uri}',
-    );
+    log('Rendering ${isPreview ? 'preview' : 'final'} view for URI: $route');
 
     setState(() {
       _currentView = view;
@@ -75,4 +87,10 @@ class _ScreenRendererState<AppConfig extends Object>
 
   @override
   String get logTag => '_ScreenRendererState';
+
+  @override
+  void dispose() {
+    _viewChangedSubscription?.cancel();
+    super.dispose();
+  }
 }

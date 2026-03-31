@@ -65,8 +65,5 @@ abstract class Guard<AppConfig extends Object>
   }
 
   @override
-  @mustBeOverridden
-  String toString() {
-    return 'Guard()';
-  }
+  String toString() => logTag;
 }

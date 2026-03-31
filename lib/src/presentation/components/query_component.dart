@@ -101,14 +101,14 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
   }
 
   @override
-  void log(String message, [Object? error, StackTrace? stackTrace]) {
+  void log(Object message, [Object? error, StackTrace? stackTrace]) {
     widget.log(message, error, stackTrace);
   }
 
   @override
   void logAtLevel(
     Level level,
-    String message, [
+    Object message, [
     Object? error,
     StackTrace? stackTrace,
   ]) {

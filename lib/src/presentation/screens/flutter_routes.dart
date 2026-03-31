@@ -116,6 +116,7 @@ class ModuleRoute<AppConfig extends Object>
   @override
   grumpy.LeafRoute<Widget, AppConfig>? get root =>
       super.root ??
+      module.routes.root ??
       ScreenRoute.root(view: GetIt.I<AppModule<AppConfig>>().notFoundScreen);
 
   @override
@@ -141,12 +142,15 @@ class ModuleRoute<AppConfig extends Object>
 
   @override
   RouteBase get goRoute {
+    // filter out root route from children since it will be added as the builder of the GoRoute
+    final routes = module.routes.where((route) => route.path != '/');
+
     return GoRoute(
       path: path,
 
       builder: _createBuilder<AppConfig>(path, log),
 
-      routes: module.routes.map((child) => child.goRoute).toList(),
+      routes: routes.map((child) => child.goRoute).toList(),
     );
   }
 

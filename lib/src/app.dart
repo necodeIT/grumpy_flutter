@@ -24,6 +24,10 @@ abstract class AppModule<AppConfig extends Object>
   GoRouter? _goRouter;
 
   /// The screen to display for unknown routes (404).
+  ///
+  /// Should not depend on any modules or repositories other than the root module, as it may be displayed when the user navigates to an unknown route and the app is not fully initialized.
+  ///
+  /// If [goRouter] does not find a matching route [Screen.buildContent] will be called on the returned screen to display the 404 page.
   Screen get notFoundScreen;
 
   /// The initial location to navigate to on app start.
@@ -58,6 +62,8 @@ abstract class AppModule<AppConfig extends Object>
       debugLogDiagnostics: true,
       initialLocation: initialLocation,
       routes: _createGoRoutes(),
+      errorBuilder: (context, state) =>
+          notFoundScreen.buildContent(context, RouteContext.fromUri(state.uri)),
     );
   }
 
