@@ -99,6 +99,9 @@ abstract class AppModule<AppConfig extends Object>
 
   @override
   String toString() => '$logTag<$AppConfig>';
+
+  /// Retrieves the module configuration from the dependency injector.
+  static T getConfig<T extends Object>() => grumpy.RootModule.getConfig<T>();
 }
 
 /// A modular unit of functionality within an application

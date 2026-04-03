@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:grumpy/grumpy.dart' hide Builder;
+import 'package:grumpy_annotations/grumpy_annotations.dart';
+import 'package:grumpy/grumpy.dart';
 
 /// A base class for all screens in the application.
 ///
 /// A Screen is a leaf node in the module tree that represents a distinct
 /// UI screen or page.
+@BaseClass(allowedLayers: {.presentation}, typeDirectory: 'screens')
 abstract class Screen implements Leaf<Widget> {
   /// A base class for all screens in the application.
   ///

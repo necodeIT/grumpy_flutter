@@ -99,6 +99,17 @@ class ShellScreenRoute<AppConfig extends Object>
 
   @override
   String get logTag => 'ShellScreenRoute';
+
+  @override
+  String treeLabel() {
+    final info = treeInfo;
+    final suffix = info.isEmpty ? '' : '[${info.join(', ')}]';
+
+    return 'Shell $suffix';
+  }
+
+  @override
+  List<String> get treeInfo => [...super.treeInfo];
 }
 
 /// A route that activates a [Module] when matched.
