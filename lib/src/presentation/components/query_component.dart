@@ -9,13 +9,18 @@ import 'package:logging/logging.dart';
 /// Provides a set of hooks for querying data within a [QueryComponent].
 class QueryHooks extends UseHooks {
   /// Provides a set of hooks for querying data within a [QueryComponent].
-  const QueryHooks({required super.repo, required super.externalStream});
+  const QueryHooks({
+    required super.repo,
+    required super.externalStream,
+    required super.payloadStream,
+  });
 
   /// Creates a [QueryHooks] instance from a [UseHooks] instance by passing through the relevant functions.
   factory QueryHooks.fromUseHooks(UseHooks useRepo) {
     return QueryHooks(
       repo: useRepo.repo,
       externalStream: useRepo.externalStream,
+      payloadStream: useRepo.payloadStream,
     );
   }
 
@@ -152,11 +157,12 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
   @override
   FutureOr<void> dependenciesChanged() {
     log('QueryComponent detected dependency change, rebuilding UI...');
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   @override
   FutureOr<Widget> onDependencyError(Object error, StackTrace? stackTrace) {
+    if (!mounted) return const SizedBox.shrink();
     return widget.buildError(context, error, stackTrace);
   }
 

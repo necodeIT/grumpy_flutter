@@ -102,6 +102,12 @@ abstract class AppModule<AppConfig extends Object>
 
   /// Retrieves the module configuration from the dependency injector.
   static T getConfig<T extends Object>() => grumpy.RootModule.getConfig<T>();
+
+  /// Bootstraps the app module and starts the app with [buildApp] as the root widget.
+  Future<void> run() async {
+    await bootstrap();
+    runApp(buildApp());
+  }
 }
 
 /// A modular unit of functionality within an application

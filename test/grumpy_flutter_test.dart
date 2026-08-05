@@ -112,6 +112,57 @@ void main() {
     });
 
     group('QueryComponent', () {
+      testWidgets('waits for pending dependency registration', (
+        WidgetTester tester,
+      ) async {
+        final readiness = _TestDependencyReadiness();
+        GetIt.I.registerSingleton<DependencyReadiness>(readiness);
+
+        await tester.pumpWidget(
+          const MaterialApp(home: BaseStringQueryComponent(label: 'query')),
+        );
+        await tester.pump();
+
+        expect(find.text('query-loader'), findsOneWidget);
+        expect(readiness.waitCalls, equals(1));
+
+        final repo = TestRepo();
+        await repo.initialize();
+        repo.data('registered-later');
+        GetIt.I.registerSingletonAsync<TestRepo>(() async => repo);
+        readiness.complete();
+        await tester.pumpAndSettle();
+
+        expect(find.text('query-content: registered-later'), findsOneWidget);
+        expect(find.textContaining('query-error:'), findsNothing);
+      });
+
+      testWidgets('waits for pending navigation with a registered repo', (
+        WidgetTester tester,
+      ) async {
+        final readiness = _TestDependencyReadiness();
+        GetIt.I.registerSingleton<DependencyReadiness>(readiness);
+
+        final repo = TestRepo();
+        await repo.initialize();
+        repo.data('registered');
+        GetIt.I.registerSingletonAsync<TestRepo>(() async => repo);
+
+        await tester.pumpWidget(
+          const MaterialApp(home: BaseStringQueryComponent(label: 'query')),
+        );
+        await tester.pump();
+
+        expect(find.text('query-loader'), findsOneWidget);
+        expect(readiness.waitCalls, equals(1));
+
+        readiness.complete();
+        await tester.pumpAndSettle();
+
+        expect(find.text('query-content: registered'), findsOneWidget);
+        expect(find.textContaining('query-error:'), findsNothing);
+      });
+
       testWidgets('renders loading state while waiting for data', (
         WidgetTester tester,
       ) async {
@@ -409,6 +460,22 @@ void main() {
       expect(find.textContaining('redirect'), findsOneWidget);
     });
   });
+}
+
+class _TestDependencyReadiness implements DependencyReadiness {
+  final Completer<void> _ready = Completer<void>();
+
+  int waitCalls = 0;
+
+  void complete() {
+    if (!_ready.isCompleted) _ready.complete();
+  }
+
+  @override
+  Future<void> waitForPendingDependencies() {
+    waitCalls++;
+    return _ready.future;
+  }
 }
 
 Future<GuardedApp> bootstrapGuardedApp(
