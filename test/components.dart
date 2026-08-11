@@ -1,6 +1,7 @@
 // we're doing unit tests, so we can ignore this lint
 // ignore_for_file: use_key_in_widget_constructors
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:grumpy_flutter/grumpy_flutter.dart';
 
@@ -38,6 +39,55 @@ class BaseStringQueryComponent extends QueryComponent<String> {
 
   @override
   String get logTag => 'BaseStringQueryComponent';
+}
+
+class ValueQueryComponent extends QueryComponent<int?> {
+  final ValueListenable<int?> listenable;
+
+  const ValueQueryComponent({required this.listenable});
+
+  @override
+  Widget buildContent(BuildContext context, int? data) {
+    return Text('value-content: $data');
+  }
+
+  @override
+  Widget buildError(
+    BuildContext context,
+    Object error,
+    StackTrace? stackTrace,
+  ) {
+    return Text('value-error: $error');
+  }
+
+  @override
+  Widget buildLoader(BuildContext context) {
+    return const Text('value-loader');
+  }
+
+  @override
+  Future<int?> query(QueryHooks use) async => use.value(listenable);
+
+  @override
+  String get logTag => 'ValueQueryComponent';
+}
+
+class CountingValueNotifier<T> extends ValueNotifier<T> {
+  CountingValueNotifier(super.value);
+
+  int activeListeners = 0;
+
+  @override
+  void addListener(VoidCallback listener) {
+    activeListeners++;
+    super.addListener(listener);
+  }
+
+  @override
+  void removeListener(VoidCallback listener) {
+    activeListeners--;
+    super.removeListener(listener);
+  }
 }
 
 class StatefulContentQueryComponent extends BaseStringQueryComponent

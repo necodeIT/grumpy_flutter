@@ -247,6 +247,48 @@ void main() {
         expect(find.text('query-content: first'), findsNothing);
       });
 
+      testWidgets('renders the latest ValueListenable value reactively', (
+        WidgetTester tester,
+      ) async {
+        final listenable = ValueNotifier<int?>(null);
+        addTearDown(listenable.dispose);
+
+        await tester.pumpWidget(
+          MaterialApp(home: ValueQueryComponent(listenable: listenable)),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('value-content: null'), findsOneWidget);
+
+        listenable.value = 1;
+        listenable.value = 2;
+        listenable.value = null;
+        listenable.value = 3;
+        await tester.pumpAndSettle();
+
+        expect(find.text('value-content: 3'), findsOneWidget);
+        expect(find.textContaining('value-error:'), findsNothing);
+      });
+
+      testWidgets('removes the ValueListenable listener on disposal', (
+        WidgetTester tester,
+      ) async {
+        final listenable = CountingValueNotifier<int?>(null);
+        addTearDown(listenable.dispose);
+
+        await tester.pumpWidget(
+          MaterialApp(home: ValueQueryComponent(listenable: listenable)),
+        );
+        await tester.pumpAndSettle();
+
+        expect(listenable.activeListeners, 1);
+
+        await tester.pumpWidget(const MaterialApp(home: SizedBox.shrink()));
+        await tester.pumpAndSettle();
+
+        expect(listenable.activeListeners, 0);
+      });
+
       group('StatefulQueryContent', () {
         testWidgets('renders content when query returns data', (
           WidgetTester tester,

@@ -9,7 +9,11 @@ import 'package:grumpy/grumpy.dart';
 ///
 /// A Screen is a leaf node in the module tree that represents a distinct
 /// UI screen or page.
-@BaseClass(allowedLayers: {.presentation}, typeDirectory: 'screens')
+@BaseClass(
+  allowedLayers: {.presentation},
+  typeDirectory: 'screens',
+  allowPrivateClasses: true,
+)
 abstract class Screen implements Leaf<Widget> {
   /// A base class for all screens in the application.
   ///
