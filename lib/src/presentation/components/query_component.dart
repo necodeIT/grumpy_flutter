@@ -88,12 +88,39 @@ abstract class QueryComponent<T> extends StatefulComponent with LogMixin {
   Level get logLevel => Level.FINEST;
 }
 
+/// The successful value retained by a query component between rebuilds.
+final class _QueryData<T> {
+  /// Creates a successful query state for [data].
+  const _QueryData(this.data);
+
+  /// The latest value returned by [QueryComponent.query].
+  final T data;
+}
+
+/// The failure retained by a query component between rebuilds.
+final class _QueryError {
+  /// Creates a failed query state with its optional [stackTrace].
+  const _QueryError(this.error, this.stackTrace);
+
+  /// The error thrown while resolving the query.
+  final Object error;
+
+  /// The stack trace associated with [error], when available.
+  final StackTrace? stackTrace;
+}
+
+/// The loading state retained by a query component between rebuilds.
+enum _QueryLoading {
+  /// Indicates that the query is waiting for its dependencies or result.
+  waiting,
+}
+
 class _QueryComponentState<T> extends State<QueryComponent<T>>
     with
         LifecycleMixin,
         LogMixin,
         LifecycleHooksMixin,
-        UseRepoMixin<Widget, Widget, Widget> {
+        UseRepoMixin<_QueryData<T>, _QueryError, _QueryLoading> {
   @initializer
   @override
   void initState() {
@@ -127,31 +154,26 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
     return when(
       data: (data) {
         log('Rendering data state');
-        return data;
+        return widget.buildContent(context, data.data);
       },
       error: (error) {
         log('Rendering error state');
-        return error;
+        return widget.buildError(context, error.error, error.stackTrace);
       },
       loading: (loading) {
         log('Rendering loading state');
-        return loading;
+        return widget.buildLoader(context);
       },
     );
   }
 
   @override
-  Widget onDependenciesLoading() {
-    return widget.buildLoader(context);
-  }
+  _QueryLoading onDependenciesLoading() => _QueryLoading.waiting;
 
   @override
-  FutureOr<Widget> onDependenciesReady(use) async {
+  FutureOr<_QueryData<T>> onDependenciesReady(use) async {
     final data = await widget.query(QueryHooks.fromUseHooks(use));
-
-    if (!mounted) return const SizedBox.shrink();
-
-    return widget.buildContent(context, data);
+    return _QueryData(data);
   }
 
   @override
@@ -161,9 +183,15 @@ class _QueryComponentState<T> extends State<QueryComponent<T>>
   }
 
   @override
-  FutureOr<Widget> onDependencyError(Object error, StackTrace? stackTrace) {
-    if (!mounted) return const SizedBox.shrink();
-    return widget.buildError(context, error, stackTrace);
+  FutureOr<_QueryError> onDependencyError(
+    Object error,
+    StackTrace? stackTrace,
+  ) => _QueryError(error, stackTrace);
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    unawaited(refreshDependencies());
   }
 
   @override
